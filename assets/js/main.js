@@ -1,7 +1,7 @@
 /* Funzione descrizione progetti GitHub - Portfolio */
 
 function showProjectDescription(title, githubRepo) {
-    // Ottenere il contenuto del file README.md dal repository GitHub
+    //  Contenuto del file README.md dal repository GitHub
     $.ajax({
         url: `https://api.github.com/repos/${githubRepo}/readme`,
         method: "GET",
@@ -14,7 +14,6 @@ function showProjectDescription(title, githubRepo) {
                 // Utilizzo marked per convertire il Markdown in HTML
                 const htmlContent = marked(data);
 
-                // Continua con il resto del codice
                 document.getElementById("projectTitle").innerText = title;
                 document.getElementById("projectDesc").innerHTML = htmlContent;
                 document.getElementById("projectDescription").style.display = "flex";
