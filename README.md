@@ -45,6 +45,3 @@ public/        static files (icons, Open Graph image, robots.txt)
 scripts/       link checker, social image generator
 ```
 
-- Dario Del Ministro: I extend my thanks to my dear friend Dario for helping me during the initial website publications. He managed to identify a significant number of issues.
-
-- Marco Bucchianeri: I appreciate my dear friend Marco for contributing to the application testing phase. He discovered a bug that kept me glued to the computer for at least 8 hours.
