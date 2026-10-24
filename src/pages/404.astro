@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import { useStrings } from '../i18n/ui';
+import { homePath } from '../i18n/utils';
+
+// GitHub Pages serve una sola 404 per tutto il sito: testo bilingue.
+const it = useStrings('it');
+const en = useStrings('en');
+---
+
+<Base locale="it" title={`404 — ${it.notFound.title}`} index={false} alternates={false}>
+  <main id="main" class="wrap not-found">
+    <p class="label not-found__code">HTTP 404 · 0 righe selezionate / 0 rows selected</p>
+    <h1>{it.notFound.title}</h1>
+    <p>{it.notFound.text} <a href={homePath('it')}>{it.notFound.back}</a></p>
+    <p lang="en">{en.notFound.text} <a href={homePath('en')}>{en.notFound.back}</a></p>
+  </main>
+</Base>
+
+<style>
+  .not-found {
+    display: grid;
+    gap: 1rem;
+    align-content: center;
+    min-height: 80vh;
+  }
+
+  .not-found h1 {
+    font-size: var(--step-4);
+  }
+
+  .not-found__code {
+    color: var(--accent);
+  }
+</style>

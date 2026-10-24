@@ -1,0 +1,294 @@
+---
+import { stack, stackCategories, stackUpdated } from '../data/stack';
+import type { Locale, UsageContext } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import { formatFullDate, localize, resolveEvidence } from '../i18n/utils';
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  locale: Locale;
+  index: string;
+}
+
+const { locale, index } = Astro.props;
+const t = useStrings(locale);
+const contexts: readonly UsageContext[] = ['professional', 'personal', 'learning'];
+
+const groups = stackCategories.map((category) => ({
+  ...category,
+  items: stack.filter((item) => item.category === category.id),
+}));
+
+// Ogni voce deve appartenere a una categoria esistente.
+const orphan = stack.find((item) => !stackCategories.some((c) => c.id === item.category));
+if (orphan) throw new Error(`Categoria sconosciuta per "${localize(orphan.name, 'it')}": ${orphan.category}`);
+
+const counts = Object.fromEntries(contexts.map((c) => [c, stack.filter((item) => item.context === c).length])) as Record<
+  UsageContext,
+  number
+>;
+---
+
+<section class="section" id="stack" aria-labelledby="stack-title">
+  <div class="wrap">
+    <SectionHead id="stack" index={index} title={t.stack.title} lede={t.stack.lede}>
+      <p class="label stack__updated">
+        {t.stack.updated} <time datetime={stackUpdated}>{formatFullDate(stackUpdated, locale)}</time>
+      </p>
+    </SectionHead>
+
+    <div class="section__body" data-stack>
+      <div class="stack__controls">
+        <ul class="legend" role="list">
+          {
+            contexts.map((c) => (
+              <li class="legend__item">
+                <span class={`mark mark--${c}`} aria-hidden="true" />
+                <span>{t.stack.contextsLong[c]}</span>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="filter" role="group" aria-label={t.stack.filterLabel} data-stack-filter hidden>
+          <button type="button" aria-pressed="true" data-filter="all">{t.stack.all}</button>
+          {
+            contexts.map((c) => (
+              <button type="button" aria-pressed="false" data-filter={c}>
+                {t.stack.contexts[c]} <span class="filter__count">{counts[c]}</span>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="stack__groups">
+        {
+          groups.map((group) => (
+            <section class="group" aria-labelledby={`stack-${group.id}`} data-stack-group>
+              <h3 class="group__title" id={`stack-${group.id}`}>
+                {group.label[locale]}
+              </h3>
+              <ul class="group__items" role="list">
+                {group.items.map((item) => (
+                  <li class="item" data-context={item.context}>
+                    <span class={`mark mark--${item.context}`} aria-hidden="true" />
+                    <div class="item__main">
+                      <p class="item__name">
+                        {localize(item.name, locale)}
+                        <span class="visually-hidden"> — {t.stack.contextsLong[item.context]}</span>
+                      </p>
+                      {item.note && <p class="item__note">{item.note[locale]}</p>}
+                    </div>
+                    {item.evidence && (
+                      <p class="item__evidence">
+                        <span class="visually-hidden">{t.stack.evidence}: </span>
+                        {item.evidence.map((ref, i) => {
+                          const ev = resolveEvidence(ref, locale);
+                          return (
+                            <>
+                              {i > 0 && <span aria-hidden="true">, </span>}
+                              <a href={ev.href}>{ev.label}</a>
+                            </>
+                          );
+                        })}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Filtro per contesto: miglioramento progressivo, senza JS tutto resta visibile.
+  const root = document.querySelector<HTMLElement>('[data-stack]');
+  const filter = root?.querySelector<HTMLElement>('[data-stack-filter]');
+  if (root && filter) {
+    filter.hidden = false;
+    const buttons = [...filter.querySelectorAll<HTMLButtonElement>('button')];
+    const items = [...root.querySelectorAll<HTMLElement>('[data-context]')];
+    const groups = [...root.querySelectorAll<HTMLElement>('[data-stack-group]')];
+
+    const apply = (value: string) => {
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset['filter'] === value)));
+      items.forEach((item) => (item.hidden = value !== 'all' && item.dataset['context'] !== value));
+      groups.forEach((group) => (group.hidden = !group.querySelector('[data-context]:not([hidden])')));
+    };
+
+    buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset['filter'] ?? 'all')));
+  }
+</script>
+
+<style>
+  .stack__updated {
+    grid-column: -2 / -1;
+  }
+
+  .stack__controls {
+    display: grid;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+  }
+
+  .legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Contrassegni distinguibili anche senza colore: pieno, contorno, tratteggio. */
+  .mark {
+    flex: none;
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 2px;
+  }
+
+  .mark--professional {
+    background: var(--accent);
+    border: 2px solid var(--accent);
+  }
+
+  .mark--personal {
+    border: 2px solid var(--ink);
+  }
+
+  .mark--learning {
+    border: 2px dashed var(--ink-faint);
+    border-radius: 50%;
+  }
+
+  .filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  .filter[hidden] {
+    display: none;
+  }
+
+  .filter button {
+    min-height: 2.5rem;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .filter button:hover {
+    border-color: var(--rule-strong);
+    color: var(--ink);
+  }
+
+  .filter button[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+  }
+
+  .filter__count {
+    margin-left: 0.15rem;
+    font-weight: 500;
+  }
+
+  .group {
+    display: grid;
+    gap: 0.5rem 2rem;
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .group[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .group {
+      grid-template-columns: 12rem minmax(0, 1fr);
+    }
+  }
+
+  .group__title {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.4;
+  }
+
+  .group__items {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: 0.75rem minmax(0, 1fr);
+    gap: 0.15rem 0.75rem;
+    align-items: baseline;
+    padding-block: 0.4rem;
+  }
+
+  .item[hidden] {
+    display: none;
+  }
+
+  .item .mark {
+    transform: translateY(0.05rem);
+  }
+
+  .item__name {
+    font-weight: 500;
+  }
+
+  .item__note {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+  }
+
+  .item__evidence {
+    grid-column: 2;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+  }
+
+  .item__evidence a {
+    color: var(--ink-muted);
+  }
+
+  @media (min-width: 1024px) {
+    .item {
+      grid-template-columns: 0.75rem minmax(0, 1fr) minmax(0, 1fr);
+    }
+    .item__evidence {
+      grid-column: 3;
+      text-align: right;
+    }
+  }
+</style>

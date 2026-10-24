@@ -1,0 +1,96 @@
+---
+import { profile } from '../data/profile';
+import type { Locale } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import Icon from './Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  locale: Locale;
+  index: string;
+}
+
+const { locale, index } = Astro.props;
+const t = useStrings(locale);
+---
+
+<section class="section contact" id="contact" aria-labelledby="contact-title">
+  <div class="wrap">
+    <SectionHead id="contact" index={index} title={t.contact.title} lede={t.contact.lede} />
+
+    <div class="section__body">
+      <p class="contact__email">
+        <a href={`mailto:${profile.email}`}>{profile.email}</a>
+      </p>
+      <div class="contact__actions">
+        <button class="button" type="button" data-copy={profile.email} data-copied-label={t.contact.copied} hidden>
+          <Icon name="copy" />
+          <span data-copy-label>{t.contact.copy}</span>
+        </button>
+        <a class="button" href={profile.links.linkedin} rel="me noopener">
+          <Icon name="linkedin" />
+          LinkedIn
+        </a>
+        <a class="button" href={profile.links.github} rel="me noopener">
+          <Icon name="github" />
+          GitHub
+        </a>
+      </div>
+      <p class="contact__status visually-hidden" role="status" data-copy-status></p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('[data-copy]');
+  const status = document.querySelector<HTMLElement>('[data-copy-status]');
+  const label = button?.querySelector<HTMLElement>('[data-copy-label]');
+  if (button && label && status && navigator.clipboard) {
+    button.hidden = false;
+    const original = label.textContent ?? '';
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset['copy'] ?? '');
+        const done = button.dataset['copiedLabel'] ?? '';
+        label.textContent = done;
+        status.textContent = done;
+        window.setTimeout(() => {
+          label.textContent = original;
+          status.textContent = '';
+        }, 2500);
+      } catch {
+        // Copia negata dal browser: l'indirizzo resta selezionabile e cliccabile.
+        button.hidden = true;
+      }
+    });
+  }
+</script>
+
+<style>
+  .contact {
+    background: var(--surface);
+  }
+
+  .contact__email {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 0.9rem + 2.4vw, 2.75rem);
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  .contact__email a {
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--accent);
+  }
+
+  .contact__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    margin-top: 1.75rem;
+  }
+
+  .contact__actions .button[hidden] {
+    display: none;
+  }
+</style>

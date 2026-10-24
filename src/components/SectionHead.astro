@@ -1,0 +1,17 @@
+---
+interface Props {
+  id: string;
+  index: string;
+  title: string;
+  lede?: string;
+}
+
+const { id, index, title, lede } = Astro.props;
+---
+
+<header class="section__head">
+  <p class="section__index" aria-hidden="true">{index}</p>
+  <h2 class="section__title" id={`${id}-title`}>{title}</h2>
+  {lede && <p class="section__lede">{lede}</p>}
+  <slot />
+</header>

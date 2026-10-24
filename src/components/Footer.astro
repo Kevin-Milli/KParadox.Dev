@@ -1,0 +1,40 @@
+---
+import { profile } from '../data/profile';
+import type { Locale } from '../data/types';
+import { useStrings } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useStrings(locale);
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <p>
+      © {year} {profile.name} · {profile.role[locale]}
+    </p>
+    <p class="label">
+      {t.footer.built} <a href="https://github.com/Kevin-Milli/KParadox.Dev">{t.footer.source}</a> ·
+      <a href="#top">{t.footer.top}</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--rule-strong);
+    padding-block: 2rem 2.5rem;
+    font-size: 0.875rem;
+  }
+
+  .site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+  }
+</style>

@@ -1,0 +1,231 @@
+---
+import { Image } from 'astro:assets';
+import piano from '../assets/piano.jpg';
+import { credentials, learningTotals } from '../data/education';
+import { profile } from '../data/profile';
+import type { Credential, Locale } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import { formatPartialDate, localize } from '../i18n/utils';
+import Icon from './Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  locale: Locale;
+  index: string;
+}
+
+const { locale, index } = Astro.props;
+const t = useStrings(locale);
+// Dal più recente; le voci senza data (es. diploma) in fondo.
+const list: readonly Credential[] = [...(credentials as readonly Credential[])].sort((a, b) => (b.date ?? '0').localeCompare(a.date ?? '0'));
+const hours = new Intl.NumberFormat(locale === 'it' ? 'it-IT' : 'en-GB', { useGrouping: 'always' }).format(learningTotals.hours);
+
+const story = {
+  it: [
+    `Ho iniziato a programmare nel ${learningTotals.since}, al rientro da Londra, dove coordinavo un team in un contesto internazionale. Da allora ho studiato con metodo — oltre ${hours} ore e circa ${learningTotals.certificates} certificazioni — fino al primo incarico come consulente nel 2024.`,
+    'Prima dell’informatica mi sono diplomato in grafica pubblicitaria e ho frequentato corsi universitari di psicologia e di fisica, senza concluderli. Da lì vengono due abitudini che porto nel lavoro: curare il modo in cui le informazioni vengono presentate e voler capire perché un sistema si comporta in un certo modo.',
+    'Mi interessano la matematica, la fisica, la filosofia e la psicologia. E compongo musica.',
+  ],
+  en: [
+    `I started programming in ${learningTotals.since}, after coming back from London, where I led a team in an international environment. Since then I’ve studied methodically — over ${hours} hours and about ${learningTotals.certificates} certificates — up to my first consulting role in 2024.`,
+    'Before tech I earned a diploma in advertising graphic design and took university courses in psychology and physics, without completing either degree. They left me two habits I bring to work: caring about how information is presented, and wanting to understand why a system behaves the way it does.',
+    'I’m interested in mathematics, physics, philosophy and psychology. And I write music.',
+  ],
+} as const;
+---
+
+<section class="section" id="profile" aria-labelledby="profile-title">
+  <div class="wrap">
+    <SectionHead id="profile" index={index} title={t.profile.title} lede={t.profile.lede} />
+
+    <div class="section__body profile">
+      <div class="profile__story prose">
+        {story[locale].map((p) => <p>{p}</p>)}
+      </div>
+
+      {
+        profile.links.youtube && (
+          <figure class="music">
+            <Image
+              src={piano}
+              alt={t.profile.photoAlt}
+              width={840}
+              widths={[360, 560, 840]}
+              sizes="(min-width: 1024px) 18rem, (min-width: 640px) 40vw, 100vw"
+              class="music__img"
+              loading="lazy"
+            />
+            <figcaption class="music__caption">
+              <span class="label">KParadox · YouTube</span>
+              <a class="music__link" href={profile.links.youtube}>
+                <Icon name="play" />
+                <span>
+                  <em>Lost In Memories</em>
+                  <span class="music__cta">{t.profile.music}</span>
+                </span>
+              </a>
+            </figcaption>
+          </figure>
+        )
+      }
+    </div>
+
+    <div class="section__body edu">
+      <h3 class="edu__title">{t.profile.education}</h3>
+      <ul class="edu__list" role="list">
+        {
+          list.map((c) => (
+            <li class="edu__item">
+              <p class="label edu__date">{c.date ? formatPartialDate(c.date, locale) : '—'}</p>
+              <div>
+                <p class="edu__name">{localize(c.title, locale)}</p>
+                {c.issuer && <p class="edu__issuer">{c.issuer}</p>}
+                {c.note && <p class="edu__note">{c.note[locale]}</p>}
+              </div>
+              {c.verifyUrl ? (
+                <a class="edu__verify label" href={c.verifyUrl}>
+                  {t.profile.verify}
+                  <span class="visually-hidden">: {localize(c.title, locale)}</span>
+                </a>
+              ) : (
+                <span />
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .profile {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .profile {
+      grid-template-columns: minmax(0, 1fr) 18rem;
+      gap: 3.5rem;
+      align-items: start;
+    }
+  }
+
+  .profile__story p:first-child {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    line-height: 1.5;
+  }
+
+  .music {
+    margin: 0;
+    max-width: 24rem;
+  }
+
+  .music :global(.music__img) {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+    filter: grayscale(1) contrast(1.05);
+  }
+
+  .music__caption {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+  }
+
+  .music__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    min-height: 2.75rem;
+  }
+
+  .music__link :global(svg) {
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0.55rem;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    transition: background-color 0.15s ease;
+  }
+
+  .music__link:hover :global(svg) {
+    background: var(--accent);
+  }
+
+  .music__link em {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .music__cta {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .edu {
+    margin-top: clamp(3rem, 2rem + 3vw, 4.5rem);
+  }
+
+  .edu__title {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .edu__list {
+    margin-top: 1rem;
+    border-top: 1px solid var(--rule-strong);
+  }
+
+  .edu__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.15rem 1.25rem;
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .edu__date {
+    grid-column: 1 / -1;
+  }
+
+  @media (min-width: 640px) {
+    .edu__item {
+      grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+      align-items: baseline;
+    }
+    .edu__date {
+      grid-column: auto;
+    }
+  }
+
+  .edu__name {
+    font-weight: 500;
+  }
+
+  .edu__issuer,
+  .edu__note {
+    font-size: 0.875rem;
+    color: var(--ink-muted);
+  }
+
+  .edu__verify {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--ink);
+  }
+</style>

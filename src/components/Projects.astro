@@ -1,0 +1,323 @@
+---
+import { featuredProjects, minorProjects, projectArchiveUrl } from '../data/projects';
+import type { FeaturedProject, Locale, MinorProject } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import Icon from './Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  locale: Locale;
+  index: string;
+}
+
+const { locale, index } = Astro.props;
+const t = useStrings(locale);
+const featured: readonly FeaturedProject[] = featuredProjects;
+const minor: readonly MinorProject[] = minorProjects;
+---
+
+<section class="section" id="projects" aria-labelledby="projects-title">
+  <div class="wrap">
+    <SectionHead id="projects" index={index} title={t.projects.title} lede={t.projects.lede} />
+
+    <ol class="section__body cases" role="list">
+      {
+        featured.map((project, i) => (
+          <li class="case" id={`proj-${project.id}`}>
+            <article aria-labelledby={`proj-${project.id}-title`}>
+              <header class="case__head">
+                <p class="label case__num">
+                  {String(i + 1).padStart(2, '0')} · {project.status[locale]}
+                </p>
+                <h3 class="case__title" id={`proj-${project.id}-title`}>
+                  {project.title[locale]}
+                </h3>
+              </header>
+
+              <div class="flow">
+                <p class="label flow__label">{t.projects.flow}</p>
+                <ol class="flow__steps" role="list">
+                  {project.flow[locale].map((step) => (
+                    <li>{step}</li>
+                  ))}
+                </ol>
+              </div>
+
+              <dl class="case__facts">
+                <div>
+                  <dt class="label">{t.projects.context}</dt>
+                  <dd>{project.context[locale]}</dd>
+                </div>
+                <div>
+                  <dt class="label">{t.projects.goal}</dt>
+                  <dd>{project.goal[locale]}</dd>
+                </div>
+                <div>
+                  <dt class="label">{t.projects.contribution}</dt>
+                  <dd>{project.contribution[locale]}</dd>
+                </div>
+                <div class="case__decisions">
+                  <dt class="label">{t.projects.decisions}</dt>
+                  <dd>
+                    <ul>
+                      {project.decisions[locale].map((d) => (
+                        <li>{d}</li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+                <div class="case__outcome">
+                  <dt class="label">{t.projects.outcome}</dt>
+                  <dd>{project.outcome[locale]}</dd>
+                </div>
+              </dl>
+
+              <footer class="case__foot">
+                <ul class="tags" role="list" aria-label="Stack">
+                  {project.stack.map((tech) => (
+                    <li>{tech}</li>
+                  ))}
+                </ul>
+                <a class="case__link" href={project.repo}>
+                  {t.projects.code}
+                  <span class="visually-hidden">: {project.title[locale]}</span>
+                  <Icon name="external" />
+                </a>
+              </footer>
+            </article>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="section__body others">
+      <h3 class="others__title">{t.projects.others}</h3>
+      <ul class="others__list" role="list">
+        {
+          minor.map((project) => (
+            <li class="other" id={`proj-${project.id}`}>
+              <p class="label other__year">{project.year}</p>
+              <div>
+                <h4 class="other__title">
+                  <a href={project.repo}>
+                    {project.title[locale]}
+                    <Icon name="external" class="other__icon" />
+                  </a>
+                </h4>
+                <p class="other__summary">{project.summary[locale]}</p>
+                <ul class="tags" role="list" aria-label="Stack">
+                  {project.stack.map((tech) => (
+                    <li>{tech}</li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="others__archive">
+        <a href={projectArchiveUrl}>
+          {t.projects.archive}
+          <Icon name="arrow" class="other__icon" />
+        </a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cases {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .case {
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  .case article {
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--bg);
+    transition: border-color 0.15s ease;
+  }
+
+  .case article:hover,
+  .case:target article {
+    border-color: var(--rule-strong);
+  }
+
+  .case__num {
+    color: var(--accent);
+  }
+
+  .case__title {
+    margin-top: 0.5rem;
+    font-size: var(--step-2);
+  }
+
+  /* Flusso dati: passi in monospazio collegati da frecce. */
+  .flow {
+    margin-top: 1.25rem;
+    padding: 0.85rem 1rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+  }
+
+  .flow__label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .flow__steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0;
+    margin-top: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .flow__steps li {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .flow__steps li + li::before {
+    content: '→';
+    margin-inline: 0.55rem;
+    color: var(--accent);
+  }
+
+  .case__facts {
+    display: grid;
+    gap: 1.1rem 2rem;
+    margin-top: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .case__facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .case__decisions,
+    .case__outcome {
+      grid-column: 1 / -1;
+    }
+    .case__decisions {
+      grid-row: 2;
+    }
+    .case__outcome dd {
+      max-width: var(--measure);
+    }
+  }
+
+  .case__facts dd {
+    margin: 0.3rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  .case__decisions ul {
+    display: grid;
+    gap: 0.35rem;
+    padding-left: 1.1rem;
+  }
+
+  @media (min-width: 768px) {
+    .case__decisions ul {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 2rem;
+    }
+  }
+
+  .case__decisions li::marker {
+    color: var(--accent);
+  }
+
+  .case__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .case__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .case__link :global(svg),
+  .others :global(.other__icon) {
+    display: inline-block;
+    width: 0.9rem;
+    height: 0.9rem;
+    vertical-align: -0.1em;
+    margin-left: 0.25rem;
+  }
+
+  .others {
+    margin-top: clamp(3rem, 2rem + 3vw, 4.5rem);
+  }
+
+  .others__title {
+    font-size: var(--step-1);
+    font-family: var(--font-body);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .others__list {
+    margin-top: 1rem;
+    border-top: 1px solid var(--rule-strong);
+  }
+
+  .other {
+    display: grid;
+    gap: 0.25rem 1.5rem;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  @media (min-width: 640px) {
+    .other {
+      grid-template-columns: 4rem minmax(0, 1fr);
+    }
+  }
+
+  .other__title {
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .other__summary {
+    margin-top: 0.3rem;
+    max-width: var(--measure);
+    font-size: 0.9375rem;
+    color: var(--ink-muted);
+  }
+
+  .other .tags {
+    margin-top: 0.75rem;
+  }
+
+  .others__archive {
+    margin-top: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+  }
+</style>
