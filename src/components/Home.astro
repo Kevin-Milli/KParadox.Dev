@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import type { Locale } from '../data/types';
+import Contact from './Contact.astro';
+import Experience from './Experience.astro';
+import Footer from './Footer.astro';
+import Header from './Header.astro';
+import Hero from './Hero.astro';
+import Now from './Now.astro';
+import Profile from './Profile.astro';
+import Projects from './Projects.astro';
+import Stack from './Stack.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<Base locale={locale}>
+  <Header locale={locale} />
+  <main id="main" tabindex="-1">
+    <Hero locale={locale} />
+    <Now locale={locale} index="01" />
+    <Experience locale={locale} index="02" />
+    <Projects locale={locale} index="03" />
+    <Stack locale={locale} index="04" />
+    <Profile locale={locale} index="05" />
+    <Contact locale={locale} index="06" />
+  </main>
+  <Footer locale={locale} />
+</Base>

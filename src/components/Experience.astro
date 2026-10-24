@@ -1,0 +1,185 @@
+---
+import { experience } from '../data/experience';
+import type { Assignment, Experience, Locale } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import { formatRange } from '../i18n/utils';
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  locale: Locale;
+  index: string;
+}
+
+const { locale, index } = Astro.props;
+const t = useStrings(locale);
+const jobs: readonly Experience[] = experience;
+const range = (start: Assignment['start'], end: Assignment['end']) => formatRange(start, end, t.experience.present, locale);
+---
+
+<section class="section" id="experience" aria-labelledby="experience-title">
+  <div class="wrap">
+    <SectionHead id="experience" index={index} title={t.experience.title} lede={t.experience.lede} />
+
+    <ol class="jobs" role="list">
+      {
+        jobs.map((job) => (
+          <li class="job row" id={`exp-${job.id}`}>
+            <div class="job__meta">
+              <p class="label job__dates">{range(job.start, job.end)}</p>
+              <p class="label">{job.location[locale]}</p>
+            </div>
+
+            <div class="job__body">
+              <h3 class="job__org">{job.organization}</h3>
+              <p class="job__role">{job.role[locale]}</p>
+              {job.summary && <p class="job__summary">{job.summary[locale]}</p>}
+
+              {job.highlights && (
+                <ul class="job__highlights">
+                  {job.highlights[locale].map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              )}
+
+              {job.assignments && (
+                <ol class="assignments" role="list" aria-label={t.experience.assignments}>
+                  {job.assignments.map((assignment) => (
+                    <li class="assignment" id={`exp-${assignment.id}`}>
+                      <div class="assignment__head">
+                        <h4 class="assignment__context">{assignment.context[locale]}</h4>
+                        <p class="label">
+                          {assignment.role[locale]} · {range(assignment.start, assignment.end)}
+                        </p>
+                      </div>
+                      <ul class="job__highlights">
+                        {assignment.highlights[locale].map((item) => (
+                          <li>{item}</li>
+                        ))}
+                      </ul>
+                      <ul class="tags" role="list" aria-label={t.experience.stack}>
+                        {assignment.stack.map((tech) => (
+                          <li>{tech}</li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .jobs {
+    display: grid;
+    gap: clamp(3rem, 2rem + 3vw, 4.5rem);
+  }
+
+  .job__meta {
+    display: grid;
+    gap: 0.15rem;
+    align-content: start;
+  }
+
+  @media (min-width: 900px) {
+    .job__meta {
+      position: sticky;
+      top: calc(var(--header-h) + 1.5rem);
+      align-self: start;
+    }
+  }
+
+  .job__dates {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .job__org {
+    font-size: var(--step-2);
+  }
+
+  .job__role {
+    margin-top: 0.35rem;
+    color: var(--ink-muted);
+  }
+
+  .job__summary {
+    margin-top: 1rem;
+    max-width: var(--measure);
+    color: var(--ink-muted);
+    font-size: 0.975rem;
+  }
+
+  .job__highlights {
+    max-width: var(--measure);
+    margin-top: 0.85rem;
+    padding-left: 1.1rem;
+  }
+
+  .job__highlights li + li {
+    margin-top: 0.4rem;
+  }
+
+  .job__highlights li::marker {
+    color: var(--accent);
+  }
+
+  .assignments {
+    margin-top: 1.75rem;
+    border-left: 1px solid var(--rule-strong);
+  }
+
+  .assignment {
+    position: relative;
+    padding: 0 0 2rem 1.5rem;
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  .assignment:last-child {
+    padding-bottom: 0.25rem;
+  }
+
+  /* Nodo della timeline */
+  .assignment::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 0.55rem;
+    width: 9px;
+    height: 9px;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+  }
+
+  .assignment:target::before,
+  .job:target .job__org {
+    background: var(--accent);
+  }
+
+  .assignment:target .assignment__context {
+    color: var(--accent);
+  }
+
+  .assignment__head {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .assignment__context {
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.35;
+  }
+
+  .assignment .tags {
+    margin-top: 0.9rem;
+  }
+</style>

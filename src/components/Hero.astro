@@ -1,0 +1,198 @@
+---
+import { profile } from '../data/profile';
+import type { Locale } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import Icon from './Icon.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useStrings(locale);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const cvPath = profile.cv?.[locale] ?? profile.cv?.it;
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap hero__grid">
+    <div class="hero__intro">
+      <h1 id="hero-title" class="hero__name">{profile.name}</h1>
+      <p class="hero__role">
+        {profile.role[locale]}
+        <span class="hero__role-focus">Oracle SQL &amp; PL/SQL · Python</span>
+      </p>
+      <p class="hero__tagline">{profile.tagline[locale]}</p>
+
+      <ul class="hero__actions" role="list">
+        <li>
+          <a class="button button--primary" href="#contact">
+            {t.hero.contact}
+            <Icon name="arrow" />
+          </a>
+        </li>
+        <li>
+          <a class="button" href={profile.links.linkedin} rel="me noopener">
+            <Icon name="linkedin" />
+            LinkedIn
+          </a>
+        </li>
+        <li>
+          <a class="button" href={profile.links.github} rel="me noopener">
+            <Icon name="github" />
+            GitHub
+          </a>
+        </li>
+        {
+          cvPath && (
+            <li>
+              <a class="button" href={`${base}/${cvPath}`} download>
+                <Icon name="download" />
+                {t.hero.cv}
+              </a>
+            </li>
+          )
+        }
+      </ul>
+    </div>
+
+    <figure class="record" aria-labelledby="record-caption">
+      <figcaption id="record-caption" class="visually-hidden">{t.hero.recordLabel}</figcaption>
+      <p class="record__query" aria-hidden="true"><span class="record__prompt">SQL&gt;</span> {t.hero.query}</p>
+      <dl class="record__rows">
+        {
+          profile.record.map((row) => (
+            <div class="record__row">
+              <dt>{row.column[locale]}</dt>
+              <dd>{row.value[locale]}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="record__footer" aria-hidden="true">{t.hero.rows}</p>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(3.5rem, 2rem + 7vw, 8rem) clamp(3.5rem, 2rem + 5vw, 6.5rem);
+  }
+
+  .hero__grid {
+    display: grid;
+    gap: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+    align-items: end;
+  }
+
+  @media (min-width: 1024px) {
+    .hero__grid {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    }
+  }
+
+  .hero__name {
+    font-size: var(--step-4);
+    font-weight: 450;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    font-variation-settings: 'opsz' 72;
+  }
+
+  .hero__role {
+    margin-top: 1rem;
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-style: italic;
+    line-height: 1.25;
+    color: var(--accent);
+  }
+
+  .hero__role-focus {
+    display: block;
+    margin-top: 0.35rem;
+    font-family: var(--font-mono);
+    font-style: normal;
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-muted);
+  }
+
+  .hero__tagline {
+    margin-top: 1.75rem;
+    max-width: 38rem;
+    font-size: var(--step-1);
+    line-height: 1.55;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    margin-top: 2.25rem;
+  }
+
+  /* Il "record": firma visiva del sito, una riga restituita da una query. */
+  .record {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 6px 6px 0 0 var(--accent);
+    overflow: hidden;
+  }
+
+  .record__query {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .record__prompt {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .record__rows {
+    margin: 0;
+    padding: 0.5rem 0;
+  }
+
+  .record__row {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 0.45rem 1rem;
+  }
+
+  .record__row:nth-child(even) {
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+  }
+
+  .record__row dt {
+    color: var(--ink-faint);
+  }
+
+  .record__row dd {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .record__footer {
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 420px) {
+    .record__row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>

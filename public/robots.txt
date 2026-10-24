@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kevin-milli.github.io/KParadox.Dev/sitemap-index.xml

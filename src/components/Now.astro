@@ -1,0 +1,75 @@
+---
+import { now } from '../data/profile';
+import type { Locale } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import { formatFullDate } from '../i18n/utils';
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  locale: Locale;
+  index: string;
+}
+
+const { locale, index } = Astro.props;
+const t = useStrings(locale);
+---
+
+<section class="section" id="now" aria-labelledby="now-title">
+  <div class="wrap">
+    <SectionHead id="now" index={index} title={t.now.title} lede={t.now.lede}>
+      <p class="label now__updated">
+        {t.now.updated} <time datetime={now.updated}>{formatFullDate(now.updated, locale)}</time>
+      </p>
+    </SectionHead>
+
+    <ul class="section__body now__list" role="list">
+      {
+        now.entries.map((entry) => (
+          <li class="now__item">
+            <p class="label now__label">{entry.label[locale]}</p>
+            <p class="now__text">{entry.text[locale]}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .now__updated {
+    grid-column: -2 / -1;
+  }
+
+  .now__list {
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    .now__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .now__item {
+    padding: 1.25rem 1.25rem 1.5rem;
+    background: var(--bg);
+  }
+
+  .now__label {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+  }
+
+  .now__text {
+    margin-top: 0.6rem;
+    font-size: 0.975rem;
+    line-height: 1.6;
+  }
+</style>

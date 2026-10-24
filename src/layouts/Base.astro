@@ -1,0 +1,116 @@
+---
+// Font self-hosted, solo subset latino (italiano e inglese).
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import newsreader from '@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2?url';
+import plexSans from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url';
+import plexMono from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url';
+import newsreaderItalic from '@fontsource-variable/newsreader/files/newsreader-latin-opsz-italic.woff2?url';
+import '../styles/global.css';
+
+import { profile } from '../data/profile';
+import type { Locale } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import { homePath } from '../i18n/utils';
+
+interface Props {
+  locale: Locale;
+  title?: string;
+  description?: string;
+  /** false per pagine da non indicizzare (es. 404). */
+  index?: boolean;
+  /** Pagina con versioni alternative in altre lingue (home). */
+  alternates?: boolean;
+}
+
+const { locale, title, description, index = true, alternates = true } = Astro.props;
+const t = useStrings(locale);
+const pageTitle = title ?? t.metaTitle;
+const pageDescription = description ?? t.metaDescription;
+const site = Astro.site ?? new URL('https://kevin-milli.github.io');
+const canonical = new URL(homePath(locale), site).href;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const ogImage = new URL(`${base}/og.png`, site).href;
+
+// Newsreader variabile non offre un CSS solo-latino: @font-face dichiarate qui.
+const latinRange =
+  'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD';
+const displayFontFaces = [
+  [newsreader, 'normal'],
+  [newsreaderItalic, 'italic'],
+]
+  .map(
+    ([src, style]) =>
+      `@font-face{font-family:'Newsreader Variable';font-style:${style};font-display:swap;font-weight:200 800;src:url(${src}) format('woff2-variations');unicode-range:${latinRange}}`,
+  )
+  .join('');
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  jobTitle: profile.role[locale],
+  url: new URL(homePath('it'), site).href,
+  sameAs: [profile.links.github, profile.links.linkedin],
+};
+---
+
+<!doctype html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    {[newsreader, plexSans, plexMono].map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
+    <style is:inline set:html={displayFontFaces}></style>
+    <meta name="description" content={pageDescription} />
+    <meta name="author" content={profile.name} />
+    {!index && <meta name="robots" content="noindex" />}
+    {index && <link rel="canonical" href={canonical} />}
+    {
+      index && alternates && (
+        <>
+          <link rel="alternate" hreflang="it" href={new URL(homePath('it'), site).href} />
+          <link rel="alternate" hreflang="en" href={new URL(homePath('en'), site).href} />
+          <link rel="alternate" hreflang="x-default" href={new URL(homePath('it'), site).href} />
+        </>
+      )
+    }
+
+    <meta name="theme-color" content="#f5f2eb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121315" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={`${base}/apple-touch-icon.png`} />
+    <link rel="sitemap" href={`${base}/sitemap-index.xml`} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={profile.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${profile.name} — ${profile.role[locale]}`} />
+    <meta property="og:locale" content={t.ogLocale} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {index && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+
+    <!-- Applica il tema salvato prima del rendering, per evitare il lampo di colore. -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch {}
+    </script>
+  </head>
+  <body id="top">
+    <a class="skip-link" href="#main">{t.skip}</a>
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,287 @@
+---
+import { profile } from '../data/profile';
+import type { Locale } from '../data/types';
+import { useStrings } from '../i18n/ui';
+import { homePath } from '../i18n/utils';
+import Icon from './Icon.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useStrings(locale);
+const otherLocale: Locale = locale === 'it' ? 'en' : 'it';
+const sections = ['now', 'experience', 'projects', 'stack', 'profile', 'contact'] as const;
+---
+
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href={homePath(locale)}>
+      <span class="brand__mark" aria-hidden="true">km</span>
+      <span class="brand__name">{profile.name}</span>
+    </a>
+
+    <nav class="site-nav" aria-label={t.navLabel} data-nav>
+      <button class="site-nav__toggle" type="button" aria-expanded="false" aria-controls="site-nav-list" data-nav-toggle hidden>
+        <Icon name="menu" class="icon-open" />
+        <Icon name="close" class="icon-close" />
+        <span class="visually-hidden">{t.menu}</span>
+      </button>
+      <ul class="site-nav__list" id="site-nav-list" role="list">
+        {
+          sections.map((id) => (
+            <li>
+              <a href={`#${id}`}>{t.nav[id]}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-header__tools">
+      <a class="tool" href={homePath(otherLocale)} hreflang={otherLocale} lang={otherLocale} aria-label={t.langSwitchLabel}>
+        {otherLocale.toUpperCase()}
+      </a>
+      <button class="tool" type="button" data-theme-toggle aria-label={t.themeToggle}>
+        <Icon name="moon" class="icon-moon" />
+        <Icon name="sun" class="icon-sun" />
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Menu mobile: senza JavaScript la lista resta visibile (la classe .js è impostata in Base.astro).
+  const root = document.documentElement;
+
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  if (toggle && nav) {
+    toggle.hidden = false;
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      nav.classList.toggle('is-open', open);
+    };
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+    nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && nav.classList.contains('is-open')) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+
+  // Tema: segue il sistema finché l'utente non sceglie; la scelta è salvata in localStorage.
+  const themeButton = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+  const currentTheme = () => root.dataset['theme'] ?? (prefersDark.matches ? 'dark' : 'light');
+  const syncPressed = () => themeButton?.setAttribute('aria-pressed', String(currentTheme() === 'dark'));
+  syncPressed();
+  prefersDark.addEventListener('change', syncPressed);
+  themeButton?.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.dataset['theme'] = next;
+    try {
+      localStorage.setItem('theme', next);
+    } catch {
+      // Storage non disponibile (es. navigazione privata): il tema vale per la sessione.
+    }
+    syncPressed();
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: var(--header-h);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    font-weight: 500;
+    margin-right: auto;
+  }
+
+  .brand:hover {
+    color: inherit;
+  }
+
+  .brand__mark {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    background: var(--ink);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: var(--radius);
+    transition: background-color 0.15s ease;
+  }
+
+  .brand:hover .brand__mark {
+    background: var(--accent);
+  }
+
+  .brand__name {
+    font-size: 0.9375rem;
+  }
+
+  .site-nav__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+  }
+
+  .site-nav__list a {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    text-decoration: none;
+    color: var(--ink-muted);
+    padding-block: 0.5rem;
+  }
+
+  .site-nav__list a:hover {
+    color: var(--accent);
+  }
+
+  .site-header__tools {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .tool,
+  .site-nav__toggle {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    padding: 0 0.5rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  .site-nav__toggle[hidden] {
+    display: none;
+  }
+
+  .tool:hover,
+  .site-nav__toggle:hover {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .tool :global(svg),
+  .site-nav__toggle :global(svg) {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .tool :global(.icon-sun) {
+    display: none;
+  }
+
+  :global(:root[data-theme='dark']) .tool :global(.icon-sun) {
+    display: block;
+  }
+
+  :global(:root[data-theme='dark']) .tool :global(.icon-moon) {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .tool :global(.icon-sun) {
+      display: block;
+    }
+    :global(:root:not([data-theme='light'])) .tool :global(.icon-moon) {
+      display: none;
+    }
+  }
+
+  .site-nav__toggle :global(.icon-close) {
+    display: none;
+  }
+
+  /* Mobile: menu a comparsa (solo con JavaScript attivo). */
+  @media (max-width: 899px) {
+    .site-nav {
+      order: 3;
+    }
+
+    :global(.js) .site-nav__list {
+      display: none;
+      position: absolute;
+      inset: var(--header-h) 0 auto 0;
+      flex-direction: column;
+      gap: 0;
+      padding: 0.5rem var(--gutter) 1rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    :global(.js) .site-nav.is-open .site-nav__list {
+      display: flex;
+    }
+
+    :global(.js) .site-nav__list a {
+      display: block;
+      padding-block: 0.75rem;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .site-nav.is-open .site-nav__toggle :global(.icon-open) {
+      display: none;
+    }
+
+    .site-nav.is-open .site-nav__toggle :global(.icon-close) {
+      display: block;
+    }
+
+    /* Senza JS: la lista va su una riga sotto il nome. */
+    :global(html:not(.js)) .site-header__inner {
+      flex-wrap: wrap;
+    }
+    :global(html:not(.js)) .site-nav {
+      width: 100%;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .site-nav__toggle {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .brand__name {
+      display: none;
+    }
+  }
+</style>
