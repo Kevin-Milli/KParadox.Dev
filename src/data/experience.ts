@@ -3,7 +3,6 @@ import type { Experience } from './types';
 /**
  * Esperienze professionali, dalla più recente.
  * Fonte: CV del 24/08/2026 + incarico iniziato a ottobre 2026.
- * Le discrepanze con altre fonti sono elencate in docs/portfolio-rebuild.md.
  */
 export const experience = [
   {

@@ -1,83 +1,51 @@
 # KParadox.Dev
 
-Portfolio personale di **Kevin Milli** — Data Engineer (Oracle SQL & PL/SQL, Python).
+Source code of my personal website — **Kevin Milli, Data Engineer** (Oracle SQL & PL/SQL, Python).
 
-Sito: <https://kevin-milli.github.io/KParadox.Dev/> (italiano) · <https://kevin-milli.github.io/KParadox.Dev/en/> (inglese)
+🔗 **[kevin-milli.github.io/KParadox.Dev](https://kevin-milli.github.io/KParadox.Dev/)** · available in Italian and [English](https://kevin-milli.github.io/KParadox.Dev/en/)
 
-Sito statico costruito con [Astro](https://astro.build) e TypeScript, senza
-framework JavaScript a runtime, pubblicato su GitHub Pages tramite GitHub Actions.
+## About the site
 
-## Comandi
+A single-page portfolio covering my current work, experience, selected projects, tech stack and background.
 
-Richiede Node.js ≥ 22.23.4 (CI: Node 24).
+The design takes its cue from my day-to-day work with databases: the profile opens as the result of a SQL query, sections read like tables, and technical metadata is set in a monospaced face.
 
-| Comando | Cosa fa |
-|---|---|
-| `npm ci` | Installa le dipendenze bloccate in `package-lock.json` |
-| `npm run dev` | Server di sviluppo su `http://localhost:4321/KParadox.Dev/` |
-| `npm run check` | Type check di file `.astro` e `.ts` |
-| `npm run build` | Build di produzione in `dist/` |
-| `npm run preview` | Serve la build di `dist/` in locale |
-| `npm run check:links` | Verifica link interni, ancore e id duplicati in `dist/` (aggiungere `-- --external` per i link esterni) |
-| `npm test` | `check` + `build` + `check:links` (lo stesso controllo eseguito in CI) |
+Things I cared about:
 
-## Aggiornare i contenuti
+- **Honest stack.** Technologies are grouped by where I've used them (work, personal projects, learning) and link to the experience or project behind them. No skill bars, no percentages.
+- **Content separated from presentation.** All text lives in typed data files, so updating the site rarely means touching a component.
+- **Light by default.** Static HTML, no client-side framework, self-hosted fonts and about 2 KB of inline JavaScript. Everything still works with JavaScript disabled.
+- **Accessible.** Semantic HTML, keyboard navigation, visible focus states, light and dark themes, and support for reduced motion.
 
-Tutti i contenuti stanno in `src/data/`, separati dai componenti. In genere
-non serve toccare altro.
+## Built with
 
-| Cosa | File |
-|---|---|
-| Nome, ruolo, frase di presentazione, record della hero, contatti, CV | `src/data/profile.ts` (`profile`) |
-| Sezione "Ora" e relativa data | `src/data/profile.ts` (`now`) |
-| Esperienze e incarichi | `src/data/experience.ts` |
-| Progetti in evidenza e altri progetti | `src/data/projects.ts` |
-| Stack tecnologico | `src/data/stack.ts` |
-| Formazione e certificazioni | `src/data/education.ts` |
-| Testi d'interfaccia (titoli, pulsanti, meta) | `src/i18n/ui.ts` |
+[Astro](https://astro.build) · TypeScript · plain CSS · GitHub Actions · GitHub Pages
 
-Ogni testo visibile ha la forma `{ it: '…', en: '…' }`: il type check segnala
-le traduzioni mancanti. Dettagli, esempi e scelte progettuali sono in
-[`docs/portfolio-rebuild.md`](docs/portfolio-rebuild.md).
+## Run it locally
 
-### Esempio: aggiungere una tecnologia
+Requires Node.js 22.23.4 or later.
 
-```ts
-// src/data/stack.ts
-{ name: 'dbt', category: 'data', context: 'learning' },
-// quando la usi in un incarico: context: 'professional', evidence: ['exp:<id-incarico>']
+```bash
+npm ci
+npm run dev    # http://localhost:4321/KParadox.Dev/
+npm test       # type check, production build, internal link check
 ```
 
-### Pubblicare il CV
-
-Copiare il PDF in `public/cv/` e impostare in `src/data/profile.ts`
-`cv: { it: 'cv/nome-file.pdf' }` (opzionale anche `en`). Il pulsante
-"Scarica il CV" compare solo quando il campo è valorizzato.
-
-## Struttura
+## Project structure
 
 ```
 src/
-  data/        contenuti tipizzati (unica fonte)
-  i18n/        testi d'interfaccia e utility (date, lingue, evidenze)
-  components/  sezioni della pagina
-  layouts/     <head>, metadati SEO/Open Graph, font
-  pages/       / (it), /en/, 404
-  styles/      token di design e stili globali
-public/        favicon, immagine Open Graph, robots.txt, redirect indexIT.html
-scripts/       verifica link, generazione immagini OG/icone
-docs/          documentazione del rebuild
+  data/        site content (profile, experience, projects, stack, education)
+  i18n/        interface strings and helpers
+  components/  page sections
+  layouts/     page shell, metadata, fonts
+  pages/       Italian (/) and English (/en/) home pages, 404
+  styles/      design tokens and global styles
+public/        static files (icons, Open Graph image, robots.txt)
+scripts/       link checker, social image generator
 ```
 
-## Deploy
-
-Il workflow `.github/workflows/deploy.yml` esegue `npm test` su ogni push e
-pull request e pubblica `dist/` su GitHub Pages dai push su `master`.
-
-Una tantum, prima del primo deploy da `master`: **Settings → Pages → Build and
-deployment → Source: GitHub Actions**.
-
-## Ringraziamenti
+## Acknowledgments
 
 #### Graphic Department
 
